@@ -1,189 +1,252 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Progress from '../components/ui/Progress';
+import StatsCard from '../components/ui/StatsCard';
+import '../styles/globals.css';
 
 const DashboardPage = () => {
   const { user } = useAuth();
+  const [stats, setStats] = useState({
+    totalStudents: 42,
+    completedSurveys: 28,
+    profileCompletion: 75,
+    pendingSurveys: 3,
+    monthlyGrowth: 12.5,
+    activeGoals: 8
+  });
+
+  // Animation delay for staggered card appearances
+  const [visibleCards, setVisibleCards] = useState(0);
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setVisibleCards(prev => prev + 1);
+    }, 150);
+    
+    return () => clearInterval(timer);
+  }, []);
+
+  const getTeacherDashboard = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className={visibleCards >= 1 ? 'animate-fade-in' : 'opacity-0'}>
+        <StatsCard
+          title="Total Students"
+          value={stats.totalStudents}
+          subtitle="Across all classes"
+          trend={`+${stats.monthlyGrowth}%`}
+          trendDirection="up"
+          icon="👥"
+        />
+      </div>
+      
+      <div className={visibleCards >= 2 ? 'animate-fade-in' : 'opacity-0'}>
+        <StatsCard
+          title="Completed Surveys"
+          value={stats.completedSurveys}
+          subtitle="This month"
+          trend="+8"
+          trendDirection="up"
+          icon="✅"
+        />
+      </div>
+      
+      <div className={visibleCards >= 3 ? 'animate-fade-in' : 'opacity-0'}>
+        <StatsCard
+          title="Avg. Profile Completion"
+          value={`${stats.profileCompletion}%`}
+          subtitle="Class average"
+          trend="+5%"
+          trendDirection="up"
+          icon="📊"
+        />
+      </div>
+      
+      <div className={visibleCards >= 4 ? 'animate-fade-in' : 'opacity-0'}>
+        <StatsCard
+          title="Active Goals"
+          value={stats.activeGoals}
+          subtitle="Student goals in progress"
+          icon="🎯"
+        />
+      </div>
+    </div>
+  );
+
+  const getStudentDashboard = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className={visibleCards >= 1 ? 'animate-fade-in' : 'opacity-0'}>
+        <Card className="hover-scale">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-2xl">👤</span>
+              Profile Completion
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Progress 
+              value={user?.profile?.profile_completion_percentage || stats.profileCompletion} 
+              showLabel={true}
+              color="primary"
+              size="lg"
+            />
+            <p className="text-sm text-muted-foreground mt-3">
+              Complete your profile to unlock personalized features
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className={visibleCards >= 2 ? 'animate-fade-in' : 'opacity-0'}>
+        <StatsCard
+          title="Pending Surveys"
+          value={stats.pendingSurveys}
+          subtitle="Complete by Friday"
+          icon="📋"
+        />
+      </div>
+      
+      <div className={visibleCards >= 3 ? 'animate-fade-in' : 'opacity-0'}>
+        <StatsCard
+          title="Active Goals"
+          value={stats.activeGoals}
+          subtitle="Keep pushing forward!"
+          icon="🎯"
+        />
+      </div>
+    </div>
+  );
 
   const getDashboardContent = () => {
     switch (user?.role) {
       case 'teacher':
-        return (
-          <div className="row">
-            <div className="col-md-4">
-              <div className="card bg-primary text-white">
-                <div className="card-body">
-                  <h5 className="card-title">
-                    <i className="bi bi-people-fill me-2"></i>
-                    Total Students
-                  </h5>
-                  <h2 className="mb-0">--</h2>
-                  <small>Coming soon</small>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-4">
-              <div className="card bg-success text-white">
-                <div className="card-body">
-                  <h5 className="card-title">
-                    <i className="bi bi-clipboard-check me-2"></i>
-                    Completed Surveys
-                  </h5>
-                  <h2 className="mb-0">--</h2>
-                  <small>Coming soon</small>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-4">
-              <div className="card bg-info text-white">
-                <div className="card-body">
-                  <h5 className="card-title">
-                    <i className="bi bi-graph-up me-2"></i>
-                    Profile Completion
-                  </h5>
-                  <h2 className="mb-0">--%</h2>
-                  <small>Coming soon</small>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      
+        return getTeacherDashboard();
       case 'student':
-        return (
-          <div className="row">
-            <div className="col-md-6">
-              <div className="card">
-                <div className="card-body">
-                  <h5 className="card-title">
-                    <i className="bi bi-person-circle me-2"></i>
-                    Profile Completion
-                  </h5>
-                  <div className="progress mb-2">
-                    <div 
-                      className="progress-bar bg-primary" 
-                      style={{ width: `${user?.profile?.profile_completion_percentage || 0}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-muted mb-0">
-                    {user?.profile?.profile_completion_percentage || 0}% complete
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="card">
-                <div className="card-body">
-                  <h5 className="card-title">
-                    <i className="bi bi-clipboard-data me-2"></i>
-                    Pending Surveys
-                  </h5>
-                  <h2 className="text-warning mb-0">--</h2>
-                  <small className="text-muted">Coming soon</small>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
+        return getStudentDashboard();
       default:
         return (
-          <div className="alert alert-info">
-            <h4>Welcome to the Dashboard!</h4>
-            <p>Dashboard content will be customized based on your role.</p>
-          </div>
+          <Card className="text-center py-12">
+            <CardContent>
+              <div className="text-6xl mb-4">🎓</div>
+              <h3 className="text-2xl font-bold mb-2">Welcome to Your Dashboard!</h3>
+              <p className="text-muted-foreground">
+                Your personalized dashboard content will appear here based on your role.
+              </p>
+            </CardContent>
+          </Card>
         );
     }
   };
 
   return (
-    <div className="container-fluid">
-      {/* Page Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1 className="h3 mb-1">
-            Welcome back, {user?.first_name}!
+    <div className="min-h-screen bg-background p-6 space-y-8">
+      {/* Modern Page Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold gradient-text">
+            Welcome back, {user?.first_name}! 👋
           </h1>
-          <p className="text-muted mb-0">
+          <p className="text-muted-foreground text-lg">
             Here's what's happening with your {user?.role === 'teacher' ? 'classes' : 'profile'} today.
           </p>
         </div>
-        <div>
-          <span className="badge bg-primary text-capitalize">
+        <div className="flex items-center gap-3">
+          <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium capitalize">
             {user?.role}
-          </span>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {new Date().toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </div>
         </div>
       </div>
 
       {/* Dashboard Content */}
       {getDashboardContent()}
 
-      {/* Quick Actions */}
-      <div className="mt-5">
-        <h4 className="mb-3">Quick Actions</h4>
-        <div className="row">
-          <div className="col-md-3">
-            <div className="card text-center h-100">
-              <div className="card-body">
-                <i className="bi bi-person-circle text-primary mb-2" style={{ fontSize: '2rem' }}></i>
-                <h6 className="card-title">Update Profile</h6>
-                <p className="card-text small text-muted">
-                  Keep your information current
-                </p>
-                <a href="/profile" className="btn btn-outline-primary btn-sm">
-                  Go to Profile
-                </a>
-              </div>
-            </div>
+      {/* Modern Quick Actions */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Quick Actions</h2>
+          <div className="text-sm text-muted-foreground">
+            Streamline your workflow
           </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="text-center hover-scale group cursor-pointer">
+            <CardContent className="p-6">
+              <div className="w-12 h-12 mx-auto mb-4 bg-primary/10 rounded-lg flex items-center justify-content-center text-2xl group-hover:scale-110 transition-transform">
+                👤
+              </div>
+              <h3 className="font-semibold mb-2">Update Profile</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Keep your information current
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => window.location.href = '/profile'}
+              >
+                Go to Profile
+              </Button>
+            </CardContent>
+          </Card>
 
           {user?.role === 'student' && (
-            <div className="col-md-3">
-              <div className="card text-center h-100">
-                <div className="card-body">
-                  <i className="bi bi-file-earmark-text text-success mb-2" style={{ fontSize: '2rem' }}></i>
-                  <h6 className="card-title">Upload Resume</h6>
-                  <p className="card-text small text-muted">
-                    Add your latest resume
-                  </p>
-                  <button className="btn btn-outline-success btn-sm">
-                    Upload File
-                  </button>
+            <Card className="text-center hover-scale group cursor-pointer">
+              <CardContent className="p-6">
+                <div className="w-12 h-12 mx-auto mb-4 bg-green-500/10 rounded-lg flex items-center justify-content-center text-2xl group-hover:scale-110 transition-transform">
+                  📄
                 </div>
-              </div>
-            </div>
+                <h3 className="font-semibold mb-2">Upload Resume</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add your latest resume
+                </p>
+                <Button variant="outline" size="sm" className="w-full">
+                  Upload File
+                </Button>
+              </CardContent>
+            </Card>
           )}
 
           {user?.role === 'teacher' && (
-            <div className="col-md-3">
-              <div className="card text-center h-100">
-                <div className="card-body">
-                  <i className="bi bi-clipboard-plus text-success mb-2" style={{ fontSize: '2rem' }}></i>
-                  <h6 className="card-title">Create Survey</h6>
-                  <p className="card-text small text-muted">
-                    Build a new survey
-                  </p>
-                  <button className="btn btn-outline-success btn-sm">
-                    Create Survey
-                  </button>
+            <Card className="text-center hover-scale group cursor-pointer">
+              <CardContent className="p-6">
+                <div className="w-12 h-12 mx-auto mb-4 bg-green-500/10 rounded-lg flex items-center justify-content-center text-2xl group-hover:scale-110 transition-transform">
+                  📋
                 </div>
-              </div>
-            </div>
+                <h3 className="font-semibold mb-2">Create Survey</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Build a new survey
+                </p>
+                <Button variant="outline" size="sm" className="w-full">
+                  Create Survey
+                </Button>
+              </CardContent>
+            </Card>
           )}
 
-          <div className="col-md-3">
-            <div className="card text-center h-100">
-              <div className="card-body">
-                <i className="bi bi-graph-up text-info mb-2" style={{ fontSize: '2rem' }}></i>
-                <h6 className="card-title">View Analytics</h6>
-                <p className="card-text small text-muted">
-                  Check your progress
-                </p>
-                <button className="btn btn-outline-info btn-sm">
-                  View Stats
-                </button>
+          <Card className="text-center hover-scale group cursor-pointer">
+            <CardContent className="p-6">
+              <div className="w-12 h-12 mx-auto mb-4 bg-blue-500/10 rounded-lg flex items-center justify-content-center text-2xl group-hover:scale-110 transition-transform">
+                📊
               </div>
-            </div>
-          </div>
+              <h3 className="font-semibold mb-2">View Analytics</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Check your progress
+              </p>
+              <Button variant="outline" size="sm" className="w-full">
+                View Stats
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
