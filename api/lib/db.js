@@ -1,32 +1,44 @@
 const { Pool } = require('pg');
 
-// Create a connection pool for PostgreSQL
-const connectionString = process.env.POSTGRES_URL || 
-                         process.env.DATABASE_URL || 
-                         process.env.NEON_DATABASE_URL ||
-                         process.env.DATABASE_URL_POOLER;
+// Create a connection pool for PostgreSQL - delayed initialization
+let pool = null;
 
-if (!connectionString) {
-    console.error('❌ No database connection string found. Available env vars:', Object.keys(process.env).filter(key => key.includes('DATABASE') || key.includes('POSTGRES') || key.includes('NEON')));
-    throw new Error('Database connection string not configured');
+function getPool() {
+    if (pool) return pool;
+    
+    const connectionString = process.env.POSTGRES_URL || 
+                             process.env.DATABASE_URL || 
+                             process.env.NEON_DATABASE_URL ||
+                             process.env.DATABASE_URL_POOLER;
+
+    if (!connectionString) {
+        const availableVars = Object.keys(process.env).filter(key => 
+            key.includes('DATABASE') || key.includes('POSTGRES') || key.includes('NEON')
+        );
+        console.error('❌ No database connection string found. Available env vars:', availableVars);
+        throw new Error(`Database connection string not configured. Available vars: ${availableVars.join(', ')}`);
+    }
+
+    console.log('🔌 Creating database pool...');
+    
+    pool = new Pool({
+        connectionString,
+        ssl: {
+            rejectUnauthorized: false
+        },
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 2000,
+    });
+    
+    return pool;
 }
-
-console.log('🔌 Using database connection string from:', connectionString.includes('neon') ? 'Neon' : 'Environment');
-
-const pool = new Pool({
-    connectionString,
-    ssl: {
-        rejectUnauthorized: false
-    },
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
-});
 
 // Database query helper
 async function query(text, params) {
     const start = Date.now();
     try {
+        const pool = getPool();
         const res = await pool.query(text, params);
         const duration = Date.now() - start;
         console.log('Executed query', { text, duration, rows: res.rowCount });
@@ -39,6 +51,7 @@ async function query(text, params) {
 
 // Get a client from the pool for transactions
 async function getClient() {
+    const pool = getPool();
     return await pool.connect();
 }
 
