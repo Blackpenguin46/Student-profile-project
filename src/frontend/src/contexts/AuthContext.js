@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      const response = await axios.get('/auth/me');
+      const response = await axios.get('/auth?action=me');
       if (response.data.success && response.data.authenticated) {
         setUser(response.data.data.user);
         setIsAuthenticated(true);
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('/auth/login', {
+      const response = await axios.post('/auth?action=login', {
         email,
         password
       });
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await axios.post('/auth/register', userData);
+      const response = await axios.post('/auth?action=register', userData);
 
       if (response.data.success) {
         // Auto-login after successful registration
@@ -125,7 +125,7 @@ export const AuthProvider = ({ children }) => {
 
   const forgotPassword = async (email) => {
     try {
-      const response = await axios.post('/auth/forgot-password', { email });
+      const response = await axios.post('/auth?action=forgot-password', { email });
       return { success: true, message: response.data.message };
     } catch (error) {
       const message = error.response?.data?.message || 'Password reset request failed';
@@ -135,7 +135,7 @@ export const AuthProvider = ({ children }) => {
 
   const resetPassword = async (token, password) => {
     try {
-      const response = await axios.post('/auth/reset-password', {
+      const response = await axios.post('/auth?action=reset-password', {
         token,
         password
       });
