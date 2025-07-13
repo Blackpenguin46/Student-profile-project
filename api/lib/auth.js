@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const { query } = require('./db');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS) || 12;
@@ -98,12 +99,45 @@ function validateName(name) {
     return name && name.trim().length >= 2 && name.trim().length <= 50;
 }
 
+// Authenticate token and get user data
+async function authenticateToken(req) {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return { success: false, message: 'No token provided' };
+        }
+
+        const token = authHeader.substring(7);
+        const decoded = verifyToken(token);
+        
+        if (!decoded) {
+            return { success: false, message: 'Invalid token' };
+        }
+
+        // Get fresh user data from database
+        const userResult = await query(
+            'SELECT id, email, role, first_name, last_name, is_active FROM users WHERE id = $1',
+            [decoded.userId]
+        );
+
+        if (userResult.rows.length === 0 || !userResult.rows[0].is_active) {
+            return { success: false, message: 'User not found or inactive' };
+        }
+
+        return { success: true, user: userResult.rows[0] };
+    } catch (error) {
+        console.error('Authentication error:', error);
+        return { success: false, message: 'Authentication failed' };
+    }
+}
+
 module.exports = {
     generateToken,
     verifyToken,
     hashPassword,
     comparePassword,
     extractUser,
+    authenticateToken,
     setCorsHeaders,
     sendResponse,
     sendError,
