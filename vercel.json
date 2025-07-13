@@ -1,12 +1,46 @@
 {
   "version": 2,
-  "buildCommand": "cd src/frontend && npm install && npm run vercel-build",
-  "outputDirectory": "src/frontend/build",
-  "installCommand": "cd src/frontend && npm install",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/((?!api|auth|setup-db|env-check|health).*)",
-      "destination": "/index.html"
+      "src": "src/frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    },
+    {
+      "src": "*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "auth/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "users/*.js", 
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(test|setup-db|env-check|health)\\.js",
+      "dest": "/$1.js"
+    },
+    {
+      "src": "/(test|setup-db|env-check|health)",
+      "dest": "/$1.js"
+    },
+    {
+      "src": "/auth/(.*)",
+      "dest": "/auth/$1.js"
+    },
+    {
+      "src": "/users/(.*)",
+      "dest": "/users/$1.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/src/frontend/build/index.html"
     }
   ]
 }
