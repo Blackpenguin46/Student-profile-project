@@ -1,0 +1,35 @@
+{
+  "name": "student-profile-system",
+  "version": "1.0.0",
+  "description": "Student Profile & Goal Tracking System - Competition Entry",
+  "main": "index.js",
+  "scripts": {
+    "install:backend": "cd src/backend && npm install",
+    "install:frontend": "cd src/frontend && npm install",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "dev:backend": "cd src/backend && npm run dev",
+    "dev:frontend": "cd src/frontend && npm start",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build": "cd src/frontend && npm run build",
+    "start": "cd src/backend && npm start",
+    "test": "cd src/backend && npm test && cd ../frontend && npm test",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "setup": "npm run install:all && npm run docker:up"
+  },
+  "keywords": [
+    "student-profile",
+    "education",
+    "goal-tracking",
+    "competition"
+  ],
+  "author": "Student Profile Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
