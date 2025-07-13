@@ -10,8 +10,7 @@ const RegisterPage = () => {
     email: '',
     password: '',
     confirm_password: '',
-    role: 'student',
-    class_code: ''
+    role: 'student'
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -80,9 +79,6 @@ const RegisterPage = () => {
     }
 
     // Class code validation for students
-    if (formData.role === 'student' && !formData.class_code.trim()) {
-      newErrors.class_code = 'Class code is required for student registration';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -251,35 +247,6 @@ const RegisterPage = () => {
                     )}
                   </div>
 
-                  {/* Class Code (for students) */}
-                  {formData.role === 'student' && (
-                    <div className="mb-3">
-                      <label htmlFor="class_code" className="form-label">
-                        Class Code
-                      </label>
-                      <div className="input-group">
-                        <span className="input-group-text">
-                          <i className="bi bi-key"></i>
-                        </span>
-                        <input
-                          type="text"
-                          className={`form-control ${errors.class_code ? 'is-invalid' : ''}`}
-                          id="class_code"
-                          name="class_code"
-                          value={formData.class_code}
-                          onChange={handleChange}
-                          placeholder="Enter class code provided by your teacher"
-                          disabled={isLoading}
-                        />
-                        {errors.class_code && (
-                          <div className="invalid-feedback">{errors.class_code}</div>
-                        )}
-                      </div>
-                      <div className="form-text">
-                        Ask your teacher for the class code to join their class.
-                      </div>
-                    </div>
-                  )}
 
                   {/* Password Fields */}
                   <div className="row mb-3">

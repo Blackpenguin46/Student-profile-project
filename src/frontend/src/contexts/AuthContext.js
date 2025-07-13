@@ -130,6 +130,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = (userData) => {
+    setUser(prev => ({ ...prev, ...userData }));
+  };
+
   const hasRole = (role) => {
     if (!user) return false;
     if (Array.isArray(role)) {
@@ -153,6 +157,7 @@ export const AuthProvider = ({ children }) => {
     forgotPassword,
     resetPassword,
     updateProfile,
+    updateUser,
     checkAuthStatus,
     hasRole,
     isTeacher,
