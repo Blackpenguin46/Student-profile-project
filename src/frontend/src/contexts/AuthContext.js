@@ -15,10 +15,15 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [token, setToken] = useState(localStorage.getItem('auth_token'));
 
   // Configure axios defaults
   axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
-  axios.defaults.withCredentials = true;
+  
+  // Set auth header if token exists
+  if (token) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  }
 
   // Check authentication status on app load
   useEffect(() => {
@@ -27,16 +32,31 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
+      if (!token) {
+        setUser(null);
+        setIsAuthenticated(false);
+        setLoading(false);
+        return;
+      }
+
       const response = await axios.get('/api/auth/me');
       if (response.data.success && response.data.authenticated) {
-        setUser(response.data.user);
+        setUser(response.data.data.user);
         setIsAuthenticated(true);
       } else {
+        // Token is invalid, remove it
+        localStorage.removeItem('auth_token');
+        setToken(null);
+        delete axios.defaults.headers.common['Authorization'];
         setUser(null);
         setIsAuthenticated(false);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
+      // Token is invalid, remove it
+      localStorage.removeItem('auth_token');
+      setToken(null);
+      delete axios.defaults.headers.common['Authorization'];
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -52,9 +72,17 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (response.data.success) {
-        setUser(response.data.user);
+        const authToken = response.data.token;
+        const userData = response.data.data.user;
+        
+        // Store token and set auth headers
+        localStorage.setItem('auth_token', authToken);
+        setToken(authToken);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+        
+        setUser(userData);
         setIsAuthenticated(true);
-        return { success: true, user: response.data.user };
+        return { success: true, user: userData };
       } else {
         return { success: false, message: response.data.message };
       }
@@ -83,12 +111,15 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post('/api/auth/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
+      // Clear auth token and headers
+      localStorage.removeItem('auth_token');
+      setToken(null);
+      delete axios.defaults.headers.common['Authorization'];
+      
       setUser(null);
       setIsAuthenticated(false);
+    } catch (error) {
+      console.error('Logout error:', error);
     }
   };
 
