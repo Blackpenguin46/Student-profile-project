@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('auth_token'));
 
   // Configure axios defaults
-  axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+  axios.defaults.baseURL = process.env.REACT_APP_API_URL || '/api';
   
   // Set auth header if token exists
   if (token) {
