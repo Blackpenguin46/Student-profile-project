@@ -27,16 +27,12 @@ router.post('/register',
         body('role')
             .isIn(['teacher', 'student'])
             .withMessage('Role must be either teacher or student'),
-        body('class_code')
-            .optional()
-            .isLength({ min: 1, max: 20 })
-            .withMessage('Class code must be provided for student registration')
     ],
     handleValidationErrors,
     logActivity('user_register', 'user'),
     async (req, res) => {
         try {
-            const { email, password, first_name, last_name, role, class_code } = req.body;
+            const { email, password, first_name, last_name, role } = req.body;
 
             // Check if user already exists
             const existingUsers = await db.query(
@@ -51,27 +47,6 @@ router.post('/register',
                 });
             }
 
-            // Validate class code for students
-            if (role === 'student') {
-                if (!class_code) {
-                    return res.status(400).json({
-                        success: false,
-                        message: 'Class code is required for student registration'
-                    });
-                }
-
-                const classes = await db.query(
-                    'SELECT id, teacher_id FROM classes WHERE class_code = ? AND is_active = TRUE',
-                    [class_code]
-                );
-
-                if (classes.length === 0) {
-                    return res.status(400).json({
-                        success: false,
-                        message: 'Invalid class code'
-                    });
-                }
-            }
 
             // Hash password
             const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
@@ -87,23 +62,10 @@ router.post('/register',
 
             // Create student profile if role is student
             if (role === 'student') {
-                const profileResult = await db.query(
+                await db.query(
                     'INSERT INTO student_profiles (user_id) VALUES (?)',
                     [userId]
                 );
-
-                // Enroll student in class
-                const classInfo = await db.query(
-                    'SELECT id FROM classes WHERE class_code = ?',
-                    [class_code]
-                );
-
-                if (classInfo.length > 0) {
-                    await db.query(
-                        'INSERT INTO class_enrollments (class_id, student_profile_id) VALUES (?, ?)',
-                        [classInfo[0].id, profileResult.insertId]
-                    );
-                }
             }
 
             logger.info(`New ${role} registered:`, { userId, email, role });
