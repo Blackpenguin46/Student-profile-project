@@ -189,18 +189,18 @@ const Sidebar = () => {
             Support
           </h6>
           <div className="small">
-            <a href="#" className="text-decoration-none d-block mb-1">
+            <button className="btn btn-link text-start text-decoration-none d-block mb-1 p-0 border-0">
               <i className="bi bi-question-circle me-2"></i>
               Help Center
-            </a>
-            <a href="#" className="text-decoration-none d-block mb-1">
+            </button>
+            <button className="btn btn-link text-start text-decoration-none d-block mb-1 p-0 border-0">
               <i className="bi bi-book me-2"></i>
               User Guide
-            </a>
-            <a href="#" className="text-decoration-none d-block">
+            </button>
+            <button className="btn btn-link text-start text-decoration-none d-block p-0 border-0">
               <i className="bi bi-envelope me-2"></i>
               Contact Support
-            </a>
+            </button>
           </div>
         </div>
       </div>

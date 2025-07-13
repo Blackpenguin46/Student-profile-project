@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileForm from '../components/profile/ProfileForm';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import Button from '../components/ui/Button';
+import { Card, CardContent } from '../components/ui/Card';
 import axios from 'axios';
 
 const ProfilePage = () => {

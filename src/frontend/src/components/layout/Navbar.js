@@ -97,11 +97,9 @@ const Navbar = () => {
           {/* User Menu */}
           <ul className="navbar-nav">
             <li className="nav-item dropdown">
-              <a 
-                className="nav-link dropdown-toggle d-flex align-items-center" 
-                href="#" 
+              <button 
+                className="nav-link dropdown-toggle d-flex align-items-center btn btn-link border-0" 
                 id="userDropdown" 
-                role="button" 
                 data-bs-toggle="dropdown" 
                 aria-expanded="false"
               >
@@ -110,7 +108,7 @@ const Navbar = () => {
                 <span className="badge bg-secondary ms-2 text-capitalize">
                   {user?.role}
                 </span>
-              </a>
+              </button>
               <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                 <li>
                   <h6 className="dropdown-header">

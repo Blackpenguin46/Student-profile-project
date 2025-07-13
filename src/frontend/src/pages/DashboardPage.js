@@ -8,7 +8,7 @@ import '../styles/globals.css';
 
 const DashboardPage = () => {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     totalStudents: 42,
     completedSurveys: 28,
     profileCompletion: 75,

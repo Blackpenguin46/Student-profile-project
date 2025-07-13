@@ -307,8 +307,8 @@ const RegisterPage = () => {
                   <div className="form-check mb-3">
                     <input className="form-check-input" type="checkbox" id="terms" required disabled={isLoading} />
                     <label className="form-check-label text-muted" htmlFor="terms">
-                      I agree to the <a href="#" className="text-decoration-none">Terms of Service</a> and{' '}
-                      <a href="#" className="text-decoration-none">Privacy Policy</a>
+                      I agree to the <button type="button" className="btn btn-link text-decoration-none p-0 border-0">Terms of Service</button> and{' '}
+                      <button type="button" className="btn btn-link text-decoration-none p-0 border-0">Privacy Policy</button>
                     </label>
                   </div>
 
