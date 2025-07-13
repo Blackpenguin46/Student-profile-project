@@ -1,17 +1,26 @@
 {
   "version": 2,
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "@vercel/node"
-    }
-  },
-  "buildCommand": "cd src/frontend && npm install && npm run vercel-build",
-  "outputDirectory": "src/frontend/build",
-  "installCommand": "cd src/frontend && npm install",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/((?!api).*).*",
-      "destination": "/index.html"
+      "src": "src/frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    },
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/src/frontend/build/$1"
     }
   ]
 }
