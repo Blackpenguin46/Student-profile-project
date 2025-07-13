@@ -2,5 +2,11 @@
   "version": 2,
   "buildCommand": "cd src/frontend && npm install && npm run vercel-build",
   "outputDirectory": "src/frontend/build",
-  "installCommand": "cd src/frontend && npm install"
+  "installCommand": "cd src/frontend && npm install",
+  "rewrites": [
+    {
+      "source": "/((?!api|auth|setup-db|env-check|health).*)",
+      "destination": "/index.html"
+    }
+  ]
 }
