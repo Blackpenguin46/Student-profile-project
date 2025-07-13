@@ -1,8 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "cd src/frontend && npm install && CI=false npm run build",
+  "buildCommand": "cd src/frontend && npm install && npm run vercel-build",
   "outputDirectory": "src/frontend/build",
-  "devCommand": "cd src/frontend && npm start",
   "installCommand": "cd src/frontend && npm install",
   "rewrites": [
     {
