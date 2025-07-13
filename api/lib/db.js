@@ -1,8 +1,20 @@
 const { Pool } = require('pg');
 
 // Create a connection pool for PostgreSQL
+const connectionString = process.env.POSTGRES_URL || 
+                         process.env.DATABASE_URL || 
+                         process.env.NEON_DATABASE_URL ||
+                         process.env.DATABASE_URL_POOLER;
+
+if (!connectionString) {
+    console.error('❌ No database connection string found. Available env vars:', Object.keys(process.env).filter(key => key.includes('DATABASE') || key.includes('POSTGRES') || key.includes('NEON')));
+    throw new Error('Database connection string not configured');
+}
+
+console.log('🔌 Using database connection string from:', connectionString.includes('neon') ? 'Neon' : 'Environment');
+
 const pool = new Pool({
-    connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+    connectionString,
     ssl: {
         rejectUnauthorized: false
     },
