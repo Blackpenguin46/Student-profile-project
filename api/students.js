@@ -103,30 +103,7 @@ export default async function handler(req, res) {
                     return sendError(res, 403, 'Access denied');
                 }
 
-                const { page = 1, limit = 20, search = '', year_level = '', major = '' } = req.query;
-                const offset = (page - 1) * limit;
-
-                let whereClause = 'WHERE u.is_active = true';
-                const queryParams = [];
-                let paramIndex = 1;
-
-                if (search) {
-                    whereClause += ` AND (u.first_name ILIKE $${paramIndex} OR u.last_name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`;
-                    queryParams.push(`%${search}%`);
-                    paramIndex++;
-                }
-
-                if (year_level) {
-                    whereClause += ` AND sp.year_level = $${paramIndex}`;
-                    queryParams.push(year_level);
-                    paramIndex++;
-                }
-
-                if (major) {
-                    whereClause += ` AND sp.major ILIKE $${paramIndex}`;
-                    queryParams.push(`%${major}%`);
-                    paramIndex++;
-                }
+                return await getStudentsWithAdvancedFilters(req, res, user);
 
                 const studentsResult = await query(`
                     SELECT 
@@ -242,5 +219,217 @@ export default async function handler(req, res) {
     } catch (error) {
         console.error('Students API error:', error);
         sendError(res, 500, 'Internal server error');
+    }
+}
+
+// Advanced filtering function for students
+async function getStudentsWithAdvancedFilters(req, res, user) {
+    try {
+        const {
+            page = 1,
+            limit = 20,
+            searchTerm = '',
+            skills = '',
+            skillProficiency = '',
+            interests = '',
+            yearLevel = '',
+            major = '',
+            profileCompletion = '',
+            lastActivity = '',
+            sortBy = 'name',
+            sortOrder = 'asc'
+        } = req.query;
+
+        const offset = (page - 1) * limit;
+        let whereClause = 'WHERE u.is_active = true AND u.role = \'student\'';
+        const queryParams = [];
+        let paramIndex = 1;
+        let joinClauses = '';
+
+        // Basic search term
+        if (searchTerm) {
+            whereClause += ` AND (u.first_name ILIKE $${paramIndex} OR u.last_name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex} OR sp.student_id_num ILIKE $${paramIndex})`;
+            queryParams.push(`%${searchTerm}%`);
+            paramIndex++;
+        }
+
+        // Year level filter
+        if (yearLevel) {
+            whereClause += ` AND sp.year_level = $${paramIndex}`;
+            queryParams.push(yearLevel);
+            paramIndex++;
+        }
+
+        // Major filter
+        if (major) {
+            whereClause += ` AND sp.major ILIKE $${paramIndex}`;
+            queryParams.push(`%${major}%`);
+            paramIndex++;
+        }
+
+        // Profile completion filter
+        if (profileCompletion) {
+            let completionCondition = '';
+            switch (profileCompletion) {
+                case 'high':
+                    completionCondition = 'sp.profile_completion_percentage >= 80';
+                    break;
+                case 'medium':
+                    completionCondition = 'sp.profile_completion_percentage >= 50 AND sp.profile_completion_percentage < 80';
+                    break;
+                case 'low':
+                    completionCondition = 'sp.profile_completion_percentage < 50';
+                    break;
+            }
+            if (completionCondition) {
+                whereClause += ` AND ${completionCondition}`;
+            }
+        }
+
+        // Last activity filter
+        if (lastActivity) {
+            let activityCondition = '';
+            switch (lastActivity) {
+                case 'today':
+                    activityCondition = 'u.last_login >= CURRENT_DATE';
+                    break;
+                case 'week':
+                    activityCondition = 'u.last_login >= CURRENT_DATE - INTERVAL \'7 days\'';
+                    break;
+                case 'month':
+                    activityCondition = 'u.last_login >= CURRENT_DATE - INTERVAL \'30 days\'';
+                    break;
+                case '3months':
+                    activityCondition = 'u.last_login >= CURRENT_DATE - INTERVAL \'90 days\'';
+                    break;
+                case 'inactive':
+                    activityCondition = '(u.last_login IS NULL OR u.last_login < CURRENT_DATE - INTERVAL \'90 days\')';
+                    break;
+            }
+            if (activityCondition) {
+                whereClause += ` AND ${activityCondition}`;
+            }
+        }
+
+        // Skills filter
+        if (skills) {
+            const skillIds = skills.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
+            if (skillIds.length > 0) {
+                joinClauses += ' LEFT JOIN student_skills ss ON u.id = ss.user_id';
+                whereClause += ` AND ss.skill_id = ANY($${paramIndex})`;
+                queryParams.push(skillIds);
+                paramIndex++;
+
+                // Skill proficiency filter
+                if (skillProficiency) {
+                    const proficiencyLevels = {
+                        'beginner': ['beginner', 'intermediate', 'advanced', 'expert'],
+                        'intermediate': ['intermediate', 'advanced', 'expert'],
+                        'advanced': ['advanced', 'expert'],
+                        'expert': ['expert']
+                    };
+                    
+                    const allowedLevels = proficiencyLevels[skillProficiency];
+                    if (allowedLevels) {
+                        whereClause += ` AND ss.proficiency_level = ANY($${paramIndex})`;
+                        queryParams.push(allowedLevels);
+                        paramIndex++;
+                    }
+                }
+            }
+        }
+
+        // Interests filter
+        if (interests) {
+            const interestIds = interests.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
+            if (interestIds.length > 0) {
+                joinClauses += ' LEFT JOIN student_interests si ON u.id = si.user_id';
+                whereClause += ` AND si.interest_id = ANY($${paramIndex})`;
+                queryParams.push(interestIds);
+                paramIndex++;
+            }
+        }
+
+        // Sort order
+        let orderClause = '';
+        const validSortFields = {
+            'name': 'u.first_name, u.last_name',
+            'email': 'u.email',
+            'year_level': 'sp.year_level',
+            'major': 'sp.major',
+            'profile_completion': 'sp.profile_completion_percentage',
+            'last_login': 'u.last_login',
+            'created_at': 'u.created_at'
+        };
+
+        const sortField = validSortFields[sortBy] || 'u.first_name, u.last_name';
+        const sortDirection = sortOrder === 'desc' ? 'DESC' : 'ASC';
+        orderClause = `ORDER BY ${sortField} ${sortDirection}`;
+
+        // If we have joins, we need to use DISTINCT
+        const selectPrefix = (joinClauses ? 'DISTINCT ' : '');
+
+        const studentsQuery = `
+            SELECT ${selectPrefix}
+                u.id, u.email, u.first_name, u.last_name, u.created_at, u.last_login,
+                sp.student_id_num, sp.year_level, sp.major, sp.profile_completion_percentage,
+                sp.short_term_goals, sp.long_term_goals, sp.bio,
+                (SELECT COUNT(*) FROM student_skills WHERE user_id = u.id) as skills_count,
+                (SELECT COUNT(*) FROM student_interests WHERE user_id = u.id) as interests_count,
+                (SELECT COUNT(*) FROM goals WHERE user_id = u.id) as goals_count,
+                (SELECT COUNT(*) FROM activities WHERE user_id = u.id) as activities_count
+            FROM users u
+            LEFT JOIN student_profiles sp ON u.id = sp.user_id
+            ${joinClauses}
+            ${whereClause}
+            ${orderClause}
+            LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+        `;
+
+        const countQuery = `
+            SELECT COUNT(${selectPrefix}u.id) as total
+            FROM users u
+            LEFT JOIN student_profiles sp ON u.id = sp.user_id
+            ${joinClauses}
+            ${whereClause}
+        `;
+
+        queryParams.push(limit, offset);
+
+        const [studentsResult, countResult] = await Promise.all([
+            query(studentsQuery, queryParams),
+            query(countQuery, queryParams.slice(0, -2)) // Remove limit and offset for count
+        ]);
+
+        const total = parseInt(countResult.rows[0].total);
+        const totalPages = Math.ceil(total / limit);
+
+        return sendSuccess(res, {
+            students: studentsResult.rows,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            },
+            filters: {
+                searchTerm,
+                skills: skills ? skills.split(',') : [],
+                skillProficiency,
+                interests: interests ? interests.split(',') : [],
+                yearLevel,
+                major,
+                profileCompletion,
+                lastActivity,
+                sortBy,
+                sortOrder
+            }
+        });
+
+    } catch (error) {
+        console.error('Advanced search error:', error);
+        return sendError(res, 500, 'Failed to search students');
     }
 }

@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileForm from '../components/profile/ProfileForm';
+import GoalManager from '../components/goals/GoalManager';
+import SkillsManager from '../components/skills/SkillsManager';
+import InterestsManager from '../components/interests/InterestsManager';
 import { Card, CardContent } from '../components/ui/Card';
+import Button from '../components/ui/Button';
 import axios from 'axios';
 
 const ProfilePage = () => {
@@ -9,6 +13,7 @@ const ProfilePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('profile');
 
   const handleSaveProfile = async (profileData) => {
     setIsLoading(true);
@@ -80,12 +85,48 @@ const ProfilePage = () => {
           </Card>
         )}
 
-        {/* Profile Form */}
-        <ProfileForm 
-          user={user} 
-          onSave={handleSaveProfile}
-          isLoading={isLoading}
-        />
+        {/* Tab Navigation */}
+        <div className="flex space-x-1 bg-muted p-1 rounded-lg">
+          {[
+            { id: 'profile', label: 'Basic Profile', icon: '👤' },
+            { id: 'goals', label: 'Goals', icon: '🎯' },
+            { id: 'skills', label: 'Skills', icon: '⚡' },
+            { id: 'interests', label: 'Interests', icon: '🎨' }
+          ].map((tab) => (
+            <Button
+              key={tab.id}
+              variant={activeTab === tab.id ? 'default' : 'ghost'}
+              onClick={() => setActiveTab(tab.id)}
+              className="flex-1 justify-center gap-2"
+            >
+              <span>{tab.icon}</span>
+              {tab.label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        <div className="space-y-6">
+          {activeTab === 'profile' && (
+            <ProfileForm 
+              user={user} 
+              onSave={handleSaveProfile}
+              isLoading={isLoading}
+            />
+          )}
+          
+          {activeTab === 'goals' && (
+            <GoalManager userId={user?.id} />
+          )}
+          
+          {activeTab === 'skills' && (
+            <SkillsManager userId={user?.id} />
+          )}
+          
+          {activeTab === 'interests' && (
+            <InterestsManager userId={user?.id} />
+          )}
+        </div>
       </div>
     </div>
   );

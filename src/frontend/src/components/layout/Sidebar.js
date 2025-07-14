@@ -25,6 +25,12 @@ const Sidebar = () => {
       roles: ['teacher', 'admin']
     },
     {
+      path: '/groups',
+      icon: 'bi-diagram-3-fill',
+      label: 'Groups',
+      roles: ['teacher', 'admin']
+    },
+    {
       path: '/surveys',
       icon: 'bi-clipboard-data',
       label: 'Surveys',

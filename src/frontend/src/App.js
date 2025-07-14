@@ -15,9 +15,11 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import StudentsPage from './pages/StudentsPage';
+import GroupsPage from './pages/GroupsPage';
 import SurveysPage from './pages/SurveysPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
+import ResumeUploadPage from './pages/ResumeUploadPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Route Protection Components
@@ -80,6 +82,16 @@ function App() {
                     } 
                   />
 
+                  {/* Resume Upload */}
+                  <Route 
+                    path="/resume" 
+                    element={
+                      <ProtectedRoute>
+                        <ResumeUploadPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+
                   {/* Students - Teacher/Admin only */}
                   <Route 
                     path="/students" 
@@ -95,6 +107,16 @@ function App() {
                     element={
                       <RoleBasedRoute allowedRoles={['teacher', 'admin']}>
                         <ProfilePage />
+                      </RoleBasedRoute>
+                    } 
+                  />
+
+                  {/* Groups - Teacher/Admin only */}
+                  <Route 
+                    path="/groups" 
+                    element={
+                      <RoleBasedRoute allowedRoles={['teacher', 'admin']}>
+                        <GroupsPage />
                       </RoleBasedRoute>
                     } 
                   />
