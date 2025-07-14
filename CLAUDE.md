@@ -20,3 +20,12 @@ Make every task and code change you do as simple as possible. We want to avoid m
 Every time you perform actions related to the project, write a log of your actions to docs/activity.md and read that file whenever you find it necessary to assist you. 
 8. Review Process
 Finally, add a review section to the todo.md file with a summary of the changes you made and any other relevant information.
+
+## Repository Management
+
+**CRITICAL**: You MUST ONLY push code changes to this repository: https://github.com/Blackpenguin46/Student-profile-project/tree/main
+
+- All code changes and commits should go to the main branch of this repository ONLY
+- Never push to any other repository or branch
+- Always reference this CLAUDE.md file before writing any code to ensure compliance with these guidelines
+- Before making any code changes, confirm you are working with the correct repository remote
