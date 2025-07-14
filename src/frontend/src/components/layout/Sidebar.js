@@ -43,6 +43,12 @@ const Sidebar = () => {
       roles: ['teacher', 'admin']
     },
     {
+      path: '/export',
+      icon: 'bi-download',
+      label: 'Export',
+      roles: ['teacher', 'admin']
+    },
+    {
       path: '/settings',
       icon: 'bi-gear',
       label: 'Settings',

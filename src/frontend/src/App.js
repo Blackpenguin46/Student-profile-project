@@ -16,6 +16,7 @@ import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import StudentsPage from './pages/StudentsPage';
 import GroupsPage from './pages/GroupsPage';
+import ExportPage from './pages/ExportPage';
 import SurveysPage from './pages/SurveysPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
@@ -117,6 +118,16 @@ function App() {
                     element={
                       <RoleBasedRoute allowedRoles={['teacher', 'admin']}>
                         <GroupsPage />
+                      </RoleBasedRoute>
+                    } 
+                  />
+
+                  {/* Export - Teacher/Admin only */}
+                  <Route 
+                    path="/export" 
+                    element={
+                      <RoleBasedRoute allowedRoles={['teacher', 'admin']}>
+                        <ExportPage />
                       </RoleBasedRoute>
                     } 
                   />
